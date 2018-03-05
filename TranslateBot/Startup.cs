@@ -28,8 +28,8 @@ namespace TranslateBot
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTelegramBot<TranslateBot>(_configuration.GetSection("TranslateBot"))
-                .AddUpdateHandler<TranslateENCommand>()
-                .AddUpdateHandler<TranslateRUCommand>()
+                .AddUpdateHandler<TranslateEnHandler>()
+                .AddUpdateHandler<TranslateRuHandler>()
                 .Configure();
         }
 

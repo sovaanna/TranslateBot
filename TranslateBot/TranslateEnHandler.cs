@@ -10,16 +10,8 @@ using Telegram.Bot.Types;
 
 namespace TranslateBot
 {
-    public class TranslateCommandArgs : ICommandArgs
+    public class TranslateEnHandler : UpdateHandlerBase
     {
-        public string RawInput { get; set; }
-        public string ArgsInput { get; set; }
-    }
-
-    public class TranslateENCommand : UpdateHandlerBase//CommandBase<TranslateCommandArgs>
-    {
-        public TranslateENCommand() { }
-
         public static async Task<string> YandexTranslate(string inputText, string language)
         {
             var strUrl = new StringBuilder();
