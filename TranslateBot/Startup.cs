@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot.Framework.Abstractions;
+using TranslateBot.Commands;
 
 namespace TranslateBot
 {
@@ -28,8 +29,8 @@ namespace TranslateBot
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTelegramBot<TranslateBot>(_configuration.GetSection("TranslateBot"))
-                .AddUpdateHandler<TranslateEnHandler>()
-                .AddUpdateHandler<TranslateRuHandler>()
+                .AddUpdateHandler<EnglishTextUpdateHandler>()
+                .AddUpdateHandler<RussianTextUpdateHandler>()
                 .Configure();
         }
 

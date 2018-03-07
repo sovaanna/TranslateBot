@@ -8,9 +8,9 @@ using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
 
-namespace TranslateBot
+namespace TranslateBot.Commands
 {
-    public class TranslateEnHandler : UpdateHandlerBase
+    public class EnglishTextUpdateHandler : UpdateHandlerBase
     {
         public static async Task<string> YandexTranslate(string inputText, string language)
         {
@@ -38,8 +38,10 @@ namespace TranslateBot
 
         public override bool CanHandleUpdate(IBot bot, Update update)
         {
-            return (!update.Message.Text?.StartsWith("/") ?? false) 
-                && !Regex.IsMatch(update.Message.Text, @"\p{IsCyrillic}");
+            var msgText = update.Message.Text;
+            return !(msgText == null ||
+                   msgText.StartsWith('/') ||
+                   Regex.IsMatch(msgText, @"\p{IsCyrillic}"));
         }
 
         public override async Task<UpdateHandlingResult> HandleUpdateAsync(IBot bot, Update update)
