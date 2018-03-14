@@ -4,20 +4,30 @@ using System.Threading.Tasks;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
+using TranslateService;
 
 namespace TranslateBot.Commands
 {
     public class RussianTextUpdateHandler : UpdateHandlerBase
     {
+        private readonly ITranslationService _service;
+
+        public RussianTextUpdateHandler(ITranslationService service)
+        {
+            _service = service;
+        }
+
         public override bool CanHandleUpdate(IBot bot, Update update)
         {
-            return (!update.Message.Text?.StartsWith("/") ?? false)
-                && Regex.IsMatch(update.Message.Text, @"\p{IsCyrillic}");
+            var msgText = update.Message.Text;
+            return !(msgText == null ||
+                     msgText.StartsWith('/')) &&
+                   Regex.IsMatch(msgText, @"\p{IsCyrillic}");
         }
 
         public override async Task<UpdateHandlingResult> HandleUpdateAsync(IBot bot, Update update)
         {
-            string translation = "car";//await YandexTranslate(update.Message.Text, "ru-en");
+            string translation = await _service.RussianToEnglish(update.Message.Text);
 
             try
             {
@@ -25,7 +35,7 @@ namespace TranslateBot.Commands
             }
             catch (Exception ex)
             {
-                string checkResult = "Error " + ex.ToString();
+                var checkResult = ex.Message;
             }
 
             return UpdateHandlingResult.Handled;

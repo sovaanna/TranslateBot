@@ -2,7 +2,7 @@
 
 namespace TranslateService
 {
-    public interface ITranslator
+    public interface ITranslationService
     {
         Task<string> RussianToEnglish(string text);
         Task<string> EnglishToRussian(string text);

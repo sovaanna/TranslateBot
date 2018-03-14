@@ -7,35 +7,19 @@ using Newtonsoft.Json.Linq;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using Telegram.Bot.Types;
+using TranslateService;
 
 namespace TranslateBot.Commands
 {
     public class EnglishTextUpdateHandler : UpdateHandlerBase
     {
-        public static async Task<string> YandexTranslate(string inputText, string language)
-        {
-            var strUrl = new StringBuilder();
-            strUrl.Append("https://translate.yandex.net/api/v1.5/tr.json/translate?")
-                .Append("key=trnsl.1.1.20180228T153003Z.b3b5192753962cd2.862bae356f3567fdd64c0ebcca3aea9df6fdbfb3");
-            strUrl.AppendFormat("&lang={0}&text={1}", language, inputText);
-            using (HttpClient client = new HttpClient())
-            {
-                try
-                {
-                    var response = await client.GetStringAsync(strUrl.ToString());
-                    JObject joResponse = JObject.Parse(response);
-                    JArray translationArray = (JArray)joResponse["text"];
-                    return string.Join(" | ", translationArray);
-                }
-                catch (Exception ex)
-                {
-                    string checkResult = "Error " + ex.ToString();
-                    client.Dispose();
-                    return checkResult;
-                }
-            }
-        }
+        private readonly ITranslationService _service;
 
+        public EnglishTextUpdateHandler(ITranslationService service)
+        {
+            _service = service;
+        }
+        
         public override bool CanHandleUpdate(IBot bot, Update update)
         {
             var msgText = update.Message.Text;
@@ -46,7 +30,7 @@ namespace TranslateBot.Commands
 
         public override async Task<UpdateHandlingResult> HandleUpdateAsync(IBot bot, Update update)
         {
-            string translation = await YandexTranslate(update.Message.Text, "en-ru");
+            string translation = await _service.EnglishToRussian(update.Message.Text);
 
             try
             {
@@ -54,7 +38,7 @@ namespace TranslateBot.Commands
             }
             catch (Exception ex)
             {
-                string checkResult = "Error " + ex.ToString();
+                var checkResult = ex.Message;
             }
 
             return UpdateHandlingResult.Handled;

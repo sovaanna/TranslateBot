@@ -1,14 +1,14 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Autofac;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using TranslateBot.Commands;
+using TranslateService;
 
 namespace TranslateBot
 {
@@ -21,6 +21,8 @@ namespace TranslateBot
             _configuration = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
+                .AddEnvironmentVariables()
                 .Build();
         }
 
@@ -39,39 +41,18 @@ namespace TranslateBot
         {
             loggerFactory.AddConsole();
 
-            if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
 
-                var source = new CancellationTokenSource();
-                Task.Factory.StartNew(() =>
-                {
-                    Console.WriteLine("## Press Enter to stop bot manager...");
-                    Console.ReadLine();
-                    source.Cancel();
-                });
+                app.ApplicationServices.GetRequiredService<IBotManager<TranslateBot>>();
+                app.UseTelegramBotWebhook<TranslateBot>();
 
-                Task.Factory.StartNew(async () =>
-                {
-                    var botManager = app.ApplicationServices.GetRequiredService<IBotManager<TranslateBot>>();
-                    while (!source.IsCancellationRequested)
-                    {
-                        await Task.Delay(3_000);
-                        await botManager.GetAndHandleNewUpdatesAsync();
-                    }
-
-                    Console.WriteLine("## Bot manager stopped.");
-                    Environment.Exit(0);
-                }).ContinueWith(t =>
-                {
-                    if (t.IsFaulted) throw t.Exception;
-                });
-            }
-
-            app.Run(async (context) =>
-            {
-                await context.Response.WriteAsync("Hello World!");
-            });
+            app.Run(async context => { await context.Response.WriteAsync("Hello World!"); });
+        }
+            
+        public void ConfigureContainer(ContainerBuilder builder)
+        {
+            builder.RegisterType<YandexTranslate>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterInstance(_configuration).AsImplementedInterfaces().SingleInstance();
         }
     }
 }
