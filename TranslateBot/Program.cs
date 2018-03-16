@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Net;
 using Autofac.Extensions.DependencyInjection;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
 namespace TranslateBot
@@ -9,7 +10,11 @@ namespace TranslateBot
     {
         public static void Main(string[] args)
         {
-            var host = new WebHostBuilder()
+            BuildWebHost(args).Run();
+        }
+
+        public static IWebHost BuildWebHost(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
                 .UseKestrel(opt => opt.Listen(IPAddress.Any, 8443))
                 .ConfigureServices(services => services.AddAutofac())
                 .UseContentRoot(Directory.GetCurrentDirectory())
@@ -17,8 +22,5 @@ namespace TranslateBot
                 .UseStartup<Startup>()
                 .UseApplicationInsights()
                 .Build();
-
-            host.Run();
-        }
     }
 }

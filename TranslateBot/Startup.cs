@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using TranslateBot.Commands;
@@ -37,20 +37,22 @@ namespace TranslateBot
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILogger logger)
         {
-            loggerFactory.AddConsole();
+            app.UseDeveloperExceptionPage();
 
-                app.UseDeveloperExceptionPage();
-
-                app.ApplicationServices.GetRequiredService<IBotManager<TranslateBot>>();
-                app.UseTelegramBotWebhook<TranslateBot>();
+            logger.Information("Setting webhook for {BotName}...", nameof(TranslateBot));
+            app.ApplicationServices.GetRequiredService<IBotManager<TranslateBot>>();
+            app.UseTelegramBotWebhook<TranslateBot>();
+            logger.Information("Webhook is set for {BotName}...", nameof(TranslateBot));
 
             app.Run(async context => { await context.Response.WriteAsync("Hello World!"); });
         }
             
         public void ConfigureContainer(ContainerBuilder builder)
         {
+            var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+            builder.RegisterInstance(logger).AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<YandexTranslate>().AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(_configuration).AsImplementedInterfaces().SingleInstance();
         }

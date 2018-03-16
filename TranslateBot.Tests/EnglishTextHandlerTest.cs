@@ -7,15 +7,15 @@ namespace TranslateBot.Tests
 {
     class EnglishTextHandlerTest
     {
-        [Theory()]
-        [Theory()]
-        [Theory()]
-        [Theory()]
-        [Theory()]
-        [Theory()]
-        [Theory()]
-        void CanDetermineEnglishText(string input)
-        {
-        }
+        //[Theory()]
+        //[Theory()]
+        //[Theory()]
+        //[Theory()]
+        //[Theory()]
+        //[Theory()]
+        //[Theory()]
+        //void CanDetermineEnglishText(string input)
+        //{
+        //}
     }
 }
