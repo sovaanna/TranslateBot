@@ -32,12 +32,12 @@ namespace TranslateBot.Commands
         {
             try
             {
-                string translation = await _service.EnglishToRussian(update.Message.Text);
+                string translation = await _service.TranslateEnglish(update.Message.Text);
                 await bot.Client.SendTextMessageAsync(update.Message.Chat.Id, translation);
             }
             catch (Exception ex)
             {
-                _logger.Error("Exception in {BotName}: {Error}", nameof(TranslateBot), ex.Message);
+                _logger.Error(ex, "Exception in {BotName}: {Error}", nameof(TranslateBot), ex.Message);
             }
 
             return UpdateHandlingResult.Handled;

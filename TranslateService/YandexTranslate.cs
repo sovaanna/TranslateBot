@@ -1,76 +1,63 @@
 ﻿using System;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using Serilog;
+using TranslateService.Configuration;
+using TranslateService.Enums;
+using TranslateService.Extensions;
 
 namespace TranslateService
 {
     public class YandexTranslate : ITranslationService
     {
         private readonly Uri _endpoint;
-        private readonly ILogger _logger; 
+        private readonly ILogger _logger;
 
-        public YandexTranslate(IConfiguration configuration, ILogger logger)
+        public YandexTranslate(YandexConfiguration configuration, ILogger logger)
         {
             _logger = logger;
-            var myList = configuration.GetSection("YandexTranslatorOptions");
-            string apiKey = myList["yandex_api_key"];
-            _endpoint = new Uri(myList["address"] + apiKey);
+            _endpoint = new Uri(configuration.Address + configuration.Key);
         }
-        public async Task<string> RussianToEnglish(string text)
+
+        public async Task<string> TranslateRussian(string text)
         {
-            var strUrl = new StringBuilder();
-            strUrl.AppendFormat("{0}&lang={1}&text={2}", _endpoint, "ru-en", text);
+            return await Translate(text, Language.Russian, Language.English);
+        }
+
+        public async Task<string> TranslateEnglish(string text)
+        {
+            return await Translate(text, Language.English, Language.Russian);
+        }
+
+        public async Task<string> Translate(string text, Language source, Language destination)
+        {
+            var sourceLanguage = source.GetStringValue();
+            var destinationLanguage = destination.GetStringValue();
 
             using (HttpClient client = new HttpClient())
             {
                 try
                 {
-                    _logger.Information("Starting translation in {TranslationService} for {Text} ({Language})",
-                        nameof(YandexTranslate), text, "ru-en");
-                    var response = await client.GetStringAsync(strUrl.ToString());
-                    var joResponse = JObject.Parse(response);
-                    var translationArray = (JArray)joResponse["text"];
-                    var result = string.Join(" | ", translationArray);
+                    _logger.Debug("Starting translation in {TranslationService} for {Text} ({SourceLanguage}-{DestinationLanguage})",
+                        nameof(YandexTranslate), text, sourceLanguage, destinationLanguage);
 
-                    _logger.Information("Translation is done in {TranslationService}: {Text} -> {Result}",
+                    var strUrl = $"{_endpoint}&lang={sourceLanguage}-{destinationLanguage}&text={text}";
+
+                    var response = await client.GetStringAsync(strUrl);//"{\"code\":200,\"lang\":\"en - ru\",\"text\":[\"привет\"]}";
+
+                    var deserializedResponce = JsonConvert.DeserializeObject<dynamic>(response);
+
+                    var translations = deserializedResponce.text;
+                    var result = string.Join(Environment.NewLine, translations);
+
+                    _logger.Debug("Translation is done in {TranslationService}: {Text} -> {Result}",
                         nameof(YandexTranslate), text, result);
                     return result;
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error("Exception in {TranslationService}: {Error}", nameof(YandexTranslate), ex.Message);
-                    return ex.Message;
-                }
-            }
-        }
-
-        public async Task<string> EnglishToRussian(string text)
-        {
-            var strUrl = new StringBuilder();
-            strUrl.AppendFormat("{0}&lang={1}&text={2}", _endpoint, "en-ru", text);
-
-            using (HttpClient client = new HttpClient())
-            {
-                try
-                {
-                    _logger.Information("Starting translation in {TranslationService} for {Text} ({Language})",
-                        nameof(YandexTranslate), text, "en-ru");
-                    var response = await client.GetStringAsync(strUrl.ToString());
-                    var joResponse = JObject.Parse(response);
-                    var translationArray = (JArray)joResponse["text"];
-                    var result = string.Join(" | ", translationArray);
-
-                    _logger.Information("Translation is done in {TranslationService}: {Text} -> {Result}",
-                        nameof(YandexTranslate), text, result);
-                    return result;
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error("Exception in {TranslationService}: {Error}", nameof(YandexTranslate), ex.Message);
+                    _logger.Error(ex, "Exception in {TranslationService}: {Error}", nameof(YandexTranslate), ex.Message);
                     return ex.Message;
                 }
             }

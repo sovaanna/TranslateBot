@@ -9,6 +9,7 @@ using Telegram.Bot.Framework;
 using Telegram.Bot.Framework.Abstractions;
 using TranslateBot.Commands;
 using TranslateService;
+using TranslateService.Configuration;
 
 namespace TranslateBot
 {
@@ -54,6 +55,7 @@ namespace TranslateBot
             var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
             builder.RegisterInstance(logger).AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<YandexTranslate>().AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<YandexConfiguration>().AsSelf().SingleInstance();
             builder.RegisterInstance(_configuration).AsImplementedInterfaces().SingleInstance();
         }
     }

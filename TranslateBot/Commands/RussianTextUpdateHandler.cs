@@ -32,7 +32,7 @@ namespace TranslateBot.Commands
         {
             try
             {
-                string translation = await _service.RussianToEnglish(update.Message.Text);
+                string translation = await _service.TranslateRussian(update.Message.Text);
 
                 _logger.Information("Sending translation Results in {BotName}", nameof(TranslateBot));
                 await bot.Client.SendTextMessageAsync(update.Message.Chat.Id, translation);
@@ -40,7 +40,7 @@ namespace TranslateBot.Commands
             }
             catch (Exception ex)
             {
-                _logger.Error("Exception in {BotName}: {Error}", nameof(TranslateBot), ex.Message);
+                _logger.Error(ex, "Exception in {BotName}: {Error}", nameof(TranslateBot), ex.Message);
             }
 
             return UpdateHandlingResult.Handled;
